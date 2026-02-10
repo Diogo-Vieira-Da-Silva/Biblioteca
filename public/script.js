@@ -162,10 +162,18 @@ if (livroForm) {
     .then(response => response.text())
     .then(data => {
         console.log('Resposta:', data);
-        alert(data);
-        document.getElementById('livroForm').reset();
-        // Recarregar livros
-        carregarLivros(formData.usuario_id);
+        
+        const prefix = data.split('|')[0];
+        const message = data.split('|')[1] || data;
+        
+        if (prefix === 'ERRO') {
+            alert(message);
+        } else {
+            alert(data);
+            document.getElementById('livroForm').reset();
+            // Recarregar livros
+            carregarLivros(formData.usuario_id);
+        }
     })
     .catch(error => {
         console.error('Erro:', error);

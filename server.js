@@ -110,14 +110,28 @@ app.post('/livros', (req, res) => {
     return res.status(400).send('Erro: ID do usuário não fornecido');
   }
   
-  db.query('INSERT INTO books (titulo, autor, genero, ano_de_publicacao, status_leitura, nota, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?)', 
-    [titulo, autor, genero, ano, status, nota, usuario_id], (err, result) => {
+  // Verificar se já existe livro com o mesmo título para este usuário
+  db.query('SELECT * FROM books WHERE titulo = ? AND usuario_id = ?', [titulo, usuario_id], (err, results) => {
     if (err) {
-      console.error('Erro ao inserir livro:', err);
-      return res.status(500).send('Erro ao cadastrar livro: ' + err.message);
+      console.error('Erro ao verificar livro existente:', err);
+      return res.status(500).send('Erro ao verificar livro: ' + err.message);
     }
-    console.log('Livro cadastrado com sucesso! ID:', result.insertId);
-    res.send('Livro cadastrado com sucesso!');
+    
+    if (results.length > 0) {
+      console.log('Livro com título já existente!');
+      return res.status(400).send('ERRO|Esse livro já está registrado, corrija o título ou adicione outro livro');
+    }
+    
+    // Se não existir, inserir novo livro
+    db.query('INSERT INTO books (titulo, autor, genero, ano_de_publicacao, status_leitura, nota, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+      [titulo, autor, genero, ano, status, nota, usuario_id], (err, result) => {
+      if (err) {
+        console.error('Erro ao inserir livro:', err);
+        return res.status(500).send('Erro ao cadastrar livro: ' + err.message);
+      }
+      console.log('Livro cadastrado com sucesso! ID:', result.insertId);
+      res.send('Livro cadastrado com sucesso!');
+    });
   });
 });
 
